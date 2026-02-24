@@ -19,6 +19,7 @@ from data.cache_manager import CacheManager
 from data.news_fetcher import NewsFetcher
 from data.price_fetcher import PriceFetcher
 from nlp.analyzer import SentimentAnalyzer
+from nlp.clusterer import ArticleClusterer
 
 app = FastAPI(
     title="Commodity Pulse API",
@@ -48,6 +49,7 @@ _cache = CacheManager()
 _price_fetcher = PriceFetcher(cache=_cache)
 _news_fetcher = NewsFetcher(cache=_cache)
 _sentiment_analyzer = SentimentAnalyzer()
+_clusterer = ArticleClusterer()
 
 
 def _get_commodity(commodity: str) -> dict:
@@ -143,4 +145,39 @@ def get_sentiment(commodity: str):
         "summary": result["summary"],
         "rolling": result["rolling"],
         "trend": result["trend"],
+    }
+
+
+@app.get("/api/news/{commodity}/clusters")
+def get_news_clusters(commodity: str):
+    """Return news articles grouped into thematic clusters with price context."""
+    info = _get_commodity(commodity)
+
+    # Fetch and score articles
+    articles = _news_fetcher.fetch_news(
+        keywords=info["keywords"],
+        rss_feeds=info["rss_feeds"],
+        commodity_key=commodity,
+    )
+    result = _sentiment_analyzer.analyze(
+        articles, commodity_keywords=info["keywords"]
+    )
+    scored = result["scored_articles"]
+
+    # Fetch recent price data for price delta computation
+    df = _price_fetcher.fetch_prices(info["ticker"], timeframe="7d")
+    price_data = None
+    if not df.empty:
+        records = df.copy()
+        records["Date"] = records["Date"].astype(str)
+        price_data = records.to_dict(orient="records")
+
+    # Cluster articles by theme
+    clusters = _clusterer.cluster(scored, commodity, price_data)
+
+    return {
+        "commodity": commodity,
+        "clusters": clusters,
+        "total_articles": len(scored),
+        "clustered_articles": sum(c["article_count"] for c in clusters),
     }

@@ -9,9 +9,12 @@ import {
   PriceHistoryResponse,
   NewsResponse,
   SentimentResponse,
+  ClustersResponse,
+  NewsCluster,
 } from "@/lib/api";
 import PriceCards from "./PriceCards";
 import PriceChart from "./PriceChart";
+import ClusterCards from "./ClusterCards";
 import NewsFeed from "./NewsFeed";
 import SentimentPanel from "./SentimentPanel";
 
@@ -32,11 +35,14 @@ export default function Dashboard({
   const [history, setHistory] = useState<PriceHistoryResponse | null>(null);
   const [news, setNews] = useState<NewsResponse | null>(null);
   const [sentiment, setSentiment] = useState<SentimentResponse | null>(null);
+  const [clusters, setClusters] = useState<ClustersResponse | null>(null);
+  const [hoveredCluster, setHoveredCluster] = useState<NewsCluster | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch all data when commodity or timeframe changes
   useEffect(() => {
     setLoading(true);
+    setHoveredCluster(null);
 
     const displayKeys = [
       commodityKey,
@@ -53,7 +59,8 @@ export default function Dashboard({
       api.getPriceHistory(commodityKey, timeframe).catch(() => null),
       api.getNews(commodityKey).catch(() => null),
       api.getSentiment(commodityKey).catch(() => null),
-    ]).then(([priceResults, hist, newsData, sentData]) => {
+      api.getClusters(commodityKey).catch(() => null),
+    ]).then(([priceResults, hist, newsData, sentData, clusterData]) => {
       const priceMap: Record<string, PriceData> = {};
       for (const r of priceResults) {
         if (r) priceMap[r[0]] = r[1];
@@ -62,6 +69,7 @@ export default function Dashboard({
       setHistory(hist);
       setNews(newsData);
       setSentiment(sentData);
+      setClusters(clusterData);
       setLoading(false);
     });
   }, [commodityKey, timeframe, allCommodities]);
@@ -130,7 +138,22 @@ export default function Dashboard({
 
             {/* Price Chart */}
             <SectionHeader title="PRICE CHART" icon="📈" color="text-cyber-blue" />
-            <PriceChart data={history} commodityName={commodityInfo.name} />
+            <PriceChart
+              data={history}
+              commodityName={commodityInfo.name}
+              highlightCluster={hoveredCluster}
+            />
+
+            {/* News Theme Clusters */}
+            {clusters && clusters.clusters.length > 0 && (
+              <>
+                <SectionHeader title="NEWS THEMES" icon="🎯" color="text-cyber-cyan" />
+                <ClusterCards
+                  clusters={clusters}
+                  onClusterHover={setHoveredCluster}
+                />
+              </>
+            )}
 
             {/* Sentiment */}
             {sentiment && (
