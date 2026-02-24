@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Commodity Pulse",
   description: "Commodity news × price correlation dashboard",
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
