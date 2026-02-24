@@ -88,6 +88,11 @@ class NewsFetcher:
         cached = self.cache.get_cached(cache_key, CACHE_DURATIONS["news"])
         if cached is not None:
             logger.debug("Cache hit for %s", cache_key)
+            # Sanitise descriptions — older cache entries may contain HTML.
+            for article in cached:
+                desc = article.get("description", "")
+                if desc and ("<" in desc or "&" in desc):
+                    article["description"] = self._strip_html(desc)
             return cached
 
         # --- fetch from both sources ----------------------------------------
@@ -291,8 +296,11 @@ class NewsFetcher:
 
     @classmethod
     def _strip_html(cls, text: str) -> str:
-        """Remove HTML tags and collapse whitespace."""
+        """Remove HTML tags, decode common entities, and collapse whitespace."""
+        from html import unescape
+
         clean = cls._HTML_TAG_RE.sub(" ", text)
+        clean = unescape(clean)  # &nbsp; → space, &amp; → &, etc.
         clean = re.sub(r"\s+", " ", clean).strip()
         return clean
 
