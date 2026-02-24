@@ -17,11 +17,11 @@ const FILTER_STYLES: Record<Filter, string> = {
   neutral: "text-gray-400 border-gray-600/30 bg-gray-600/10",
 };
 
-function sentimentColor(label: string) {
-  if (label === "positive") return "cyber-green";
-  if (label === "negative") return "cyber-red";
-  return "gray-500";
-}
+const BADGE_STYLES: Record<string, string> = {
+  positive: "bg-cyber-green/20 text-cyber-green",
+  negative: "bg-cyber-red/20 text-cyber-red",
+  neutral: "bg-gray-500/20 text-gray-500",
+};
 
 function sentimentBadge(label: string) {
   if (label === "positive") return "BULLISH";
@@ -87,7 +87,6 @@ export default function NewsFeed({ news }: NewsFeedProps) {
 }
 
 function ArticleCard({ article, index }: { article: ScoredArticle; index: number }) {
-  const color = sentimentColor(article.sentiment_label);
   const borderColor =
     article.sentiment_label === "positive" ? "rgba(0,255,136,0.3)"
     : article.sentiment_label === "negative" ? "rgba(255,68,68,0.3)"
@@ -113,7 +112,7 @@ function ArticleCard({ article, index }: { article: ScoredArticle; index: number
           <span className="text-xs font-semibold px-2 py-0.5 rounded bg-cyber-blue/20 text-cyber-blue">
             {article.source}
           </span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded bg-${color}/20 text-${color}`}>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded ${BADGE_STYLES[article.sentiment_label] ?? "bg-gray-500/20 text-gray-500"}`}>
             {sentimentBadge(article.sentiment_label)} {article.sentiment_score >= 0 ? "+" : ""}{article.sentiment_score.toFixed(2)}
           </span>
         </div>
