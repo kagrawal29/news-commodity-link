@@ -7,6 +7,7 @@ Run with: uvicorn api.main:app --reload --port 8000
 
 from __future__ import annotations
 
+import os
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
@@ -25,9 +26,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# CORS: allow localhost for development, Vercel URLs for production.
+_cors_origins = ["http://localhost:3000"]
+_vercel_url = os.getenv("VERCEL_URL")
+if _vercel_url:
+    _cors_origins.append(f"https://{_vercel_url}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

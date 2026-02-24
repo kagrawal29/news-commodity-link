@@ -6,13 +6,19 @@ All tuneable knobs live here so the rest of the codebase stays free of
 magic numbers.
 """
 
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CACHE_DB = PROJECT_ROOT / "commodity_cache.db"
+
+# On Vercel (read-only filesystem), use /tmp for the SQLite cache.
+if os.getenv("VERCEL"):
+    CACHE_DB = Path("/tmp/commodity_cache.db")
+else:
+    CACHE_DB = PROJECT_ROOT / "commodity_cache.db"
 
 # ---------------------------------------------------------------------------
 # Cache durations (in seconds)

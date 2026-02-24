@@ -75,3 +75,6 @@ frontend/out/
 
 # Playwright screenshots
 *.png
+
+# Vercel
+.vercel
