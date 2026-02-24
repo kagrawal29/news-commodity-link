@@ -20,6 +20,9 @@ icon : str
     Emoji shown next to the commodity in the UI.
 """
 
+# Google News RSS search — reliable, always fresh, commodity-specific.
+_GNEWS_RSS = "https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q="
+
 COMMODITIES: dict[str, dict] = {
     "gold": {
         "name": "Gold",
@@ -32,9 +35,10 @@ COMMODITIES: dict[str, dict] = {
             "XAUUSD",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",                  # Investing.com - Commodities
-            "https://www.kitco.com/rss/gold.xml",                         # Kitco Gold News
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=GC=F",   # Yahoo Finance Gold futures
+            f"{_GNEWS_RSS}gold+price+futures",                                  # Google News — Gold
+            "https://www.mining.com/feed/",                                      # Mining.com — metals & mining
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=GC=F",          # Yahoo Finance — Gold futures
         ],
         "icon": "\U0001f947",  # gold medal
     },
@@ -49,9 +53,10 @@ COMMODITIES: dict[str, dict] = {
             "XAGUSD",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://www.kitco.com/rss/silver.xml",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=SI=F",
+            f"{_GNEWS_RSS}silver+price+market",                                  # Google News — Silver
+            "https://www.mining.com/feed/",                                      # Mining.com — metals & mining
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=SI=F",          # Yahoo Finance — Silver futures
         ],
         "icon": "\U0001f948",  # silver medal
     },
@@ -67,9 +72,10 @@ COMMODITIES: dict[str, dict] = {
             "OPEC",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=CL=F",
-            "https://oilprice.com/rss/main",                              # OilPrice.com
+            "https://oilprice.com/rss/main",                                    # OilPrice.com — energy
+            f"{_GNEWS_RSS}crude+oil+price+WTI",                                 # Google News — Crude Oil
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=CL=F",          # Yahoo Finance — Oil futures
         ],
         "icon": "\U0001f6e2\ufe0f",  # oil drum
     },
@@ -84,9 +90,10 @@ COMMODITIES: dict[str, dict] = {
             "Henry Hub",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=NG=F",
-            "https://oilprice.com/rss/main",
+            "https://oilprice.com/rss/main",                                    # OilPrice.com — energy
+            f"{_GNEWS_RSS}natural+gas+price+LNG",                               # Google News — Natural Gas
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=NG=F",          # Yahoo Finance — NatGas futures
         ],
         "icon": "\U0001f525",  # fire
     },
@@ -100,9 +107,10 @@ COMMODITIES: dict[str, dict] = {
             "copper trading",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=HG=F",
-            "https://www.kitco.com/rss/base-metals.xml",
+            f"{_GNEWS_RSS}copper+price+market",                                 # Google News — Copper
+            "https://www.mining.com/feed/",                                      # Mining.com — metals & mining
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=HG=F",          # Yahoo Finance — Copper futures
         ],
         "icon": "\U0001fa99",  # coin (copper)
     },
@@ -116,9 +124,10 @@ COMMODITIES: dict[str, dict] = {
             "platinum trading",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://www.kitco.com/rss/platinum.xml",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=PL=F",
+            f"{_GNEWS_RSS}platinum+price+futures",                               # Google News — Platinum
+            "https://www.mining.com/feed/",                                      # Mining.com — metals & mining
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=PL=F",          # Yahoo Finance — Platinum futures
         ],
         "icon": "\u2728",  # sparkles
     },
@@ -133,8 +142,10 @@ COMMODITIES: dict[str, dict] = {
             "wheat trading",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=ZW=F",
+            f"{_GNEWS_RSS}wheat+price+futures+grain",                            # Google News — Wheat
+            "https://www.feedstuffs.com/rss.xml",                                # Feedstuffs — agriculture
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=ZW=F",          # Yahoo Finance — Wheat futures
         ],
         "icon": "\U0001f33e",  # sheaf of rice
     },
@@ -149,8 +160,10 @@ COMMODITIES: dict[str, dict] = {
             "corn trading",
         ],
         "rss_feeds": [
-            "https://www.investing.com/rss/news_14.rss",
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=ZC=F",
+            f"{_GNEWS_RSS}corn+price+futures+CBOT",                             # Google News — Corn
+            "https://www.feedstuffs.com/rss.xml",                                # Feedstuffs — agriculture
+            "https://www.investing.com/rss/news_14.rss",                         # Investing.com — Commodities
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=ZC=F",          # Yahoo Finance — Corn futures
         ],
         "icon": "\U0001f33d",  # ear of corn
     },
