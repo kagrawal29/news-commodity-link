@@ -131,8 +131,15 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
                 </div>
               )}
 
+              {/* LLM explanation */}
+              {cluster.explanation && (
+                <div className="mt-2.5 text-sm text-gray-300 leading-relaxed border-l-2 border-cyber-cyan/20 pl-3">
+                  {cluster.explanation}
+                </div>
+              )}
+
               {/* Transparency: why this cluster matched */}
-              {cluster.description && (
+              {cluster.description && !cluster.explanation && (
                 <div className="mt-2 text-xs text-gray-500 leading-relaxed">
                   {cluster.description}
                 </div>

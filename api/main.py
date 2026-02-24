@@ -20,6 +20,7 @@ from data.news_fetcher import NewsFetcher
 from data.price_fetcher import PriceFetcher
 from nlp.analyzer import SentimentAnalyzer
 from nlp.clusterer import ArticleClusterer
+from nlp.explainer import ClusterExplainer
 
 app = FastAPI(
     title="Commodity Pulse API",
@@ -50,6 +51,7 @@ _price_fetcher = PriceFetcher(cache=_cache)
 _news_fetcher = NewsFetcher(cache=_cache)
 _sentiment_analyzer = SentimentAnalyzer()
 _clusterer = ArticleClusterer()
+_explainer = ClusterExplainer()
 
 
 def _get_commodity(commodity: str) -> dict:
@@ -174,6 +176,9 @@ def get_news_clusters(commodity: str):
 
     # Cluster articles by theme
     clusters = _clusterer.cluster(scored, commodity, price_data)
+
+    # Add LLM explanations (gracefully skipped if no API key)
+    clusters = _explainer.explain_clusters(clusters, info["name"])
 
     return {
         "commodity": commodity,

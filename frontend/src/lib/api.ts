@@ -108,6 +108,7 @@ export interface NewsCluster {
   price_delta: number | null;
   price_delta_pct: number | null;
   divergence: string | null;
+  explanation: string | null;
   articles: ClusterArticle[];
 }
 
