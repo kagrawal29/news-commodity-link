@@ -24,11 +24,13 @@
 - [ ] Hover effects on price/news cards (3D lift, glow)
 - [ ] Breaking news slide-in animation
 
+> **Architecture note (audio state):** No global state management exists yet. Music/sound state must persist across commodity switches (Dashboard re-renders via AnimatePresence). Recommended approach: React Context for audio state or a singleton audio manager module. Audio assets should be lazy-loaded, not bundled.
+
 ## Phase 3 — Intelligence Layer (PLANNED)
-- [ ] News theme clusters with interactive price overlay
-- [ ] LLM-powered correlation explainers ("Why this impacts Gold")
-- [ ] Historical precedent engine (similar past events + outcomes)
-- [ ] Commodity-specific news filtering (per-commodity keywords)
+- [ ] **[P1]** Commodity-specific news filtering (per-commodity keywords) — prerequisite for other Phase 3 items
+- [ ] **[P1]** News theme clusters with interactive price overlay
+- [ ] **[P1]** LLM-powered correlation explainers ("Why this impacts Gold")
+- [ ] **[P2]** Historical precedent engine (similar past events + outcomes)
 
 ## Phase 4 — Trading Tools (FUTURE)
 - [ ] Real-time WebSocket price ticking

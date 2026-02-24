@@ -54,7 +54,7 @@ Each entry follows:
 - **Source**: Raj (user)
 - **Date**: 2026-02-24
 - **Category**: Feature
-- **Priority**: P2
+- **Priority**: P3 (downgraded from P2 — not core loop, growth item; ship after Phase 3 intelligence)
 - **Status**: Accepted
 - **Phase**: 5
 - **Description**: Cyberpunk-themed landing page with headline "Turn news noise into trading conviction in 5 minutes", dashboard screenshots, feature highlights, waitlist signup.
@@ -64,11 +64,11 @@ Each entry follows:
 - **Source**: Raj (user)
 - **Date**: 2026-02-24
 - **Category**: Bug/UX
-- **Priority**: P2
+- **Priority**: P1 (elevated from P2 — data quality issue; same news across commodities undermines trading decisions)
 - **Status**: Accepted
 - **Phase**: 3
 - **Description**: Same news articles showing across different commodities. Each commodity should have unique, relevant news.
-- **Core alignment**: Direct — data quality affects trading decisions.
+- **Core alignment**: Direct — data quality affects trading decisions. Must be fixed before Phase 3 intelligence features build on top of news data.
 
 ### FB-006: News Source Variety
 - **Source**: Raj (user)
