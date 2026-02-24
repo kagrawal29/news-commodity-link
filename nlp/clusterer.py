@@ -147,8 +147,15 @@ class ArticleClusterer:
                 theme_keyword_hits[theme_name], len(articles)
             )
 
+            # Top headline: the article with the strongest sentiment signal
+            sorted_by_signal = sorted(
+                articles, key=lambda x: abs(x["sentiment_score"]), reverse=True
+            )
+            headline = sorted_by_signal[0]["title"] if sorted_by_signal else ""
+
             clusters.append({
                 "theme": theme_name,
+                "headline": headline,
                 "description": description,
                 "article_count": len(articles),
                 "sentiment_avg": round(sentiment_avg, 4),

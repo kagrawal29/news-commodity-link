@@ -93,6 +93,13 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
                 </span>
               </div>
 
+              {/* Lead headline */}
+              {cluster.headline && (
+                <p className="text-sm text-white/80 leading-snug mb-2 line-clamp-2">
+                  {cluster.headline}
+                </p>
+              )}
+
               <div className="flex items-center gap-3 flex-wrap">
                 {/* Sentiment badge */}
                 <span className={`text-xs font-bold px-2 py-0.5 rounded ${colors.text} ${colors.bg}`}>

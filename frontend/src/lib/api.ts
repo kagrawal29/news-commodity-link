@@ -99,6 +99,7 @@ export interface ClusterArticle {
 
 export interface NewsCluster {
   theme: string;
+  headline: string;
   description: string;
   article_count: number;
   sentiment_avg: number;
