@@ -30,6 +30,12 @@ const SENTIMENT_COLORS: Record<string, { border: string; bg: string; text: strin
   },
 };
 
+const DIVERGENCE_GLOW = {
+  rest: "0 0 20px rgba(255,215,0,0.15)",
+  hover: "0 0 30px rgba(255,215,0,0.2)",
+  expanded: "0 0 35px rgba(255,215,0,0.25)",
+};
+
 function convictionLevel(count: number): { label: string; color: string } {
   if (count >= 3) return { label: "THESIS", color: "text-cyber-cyan" };
   if (count === 2) return { label: "ATTENTION", color: "text-cyber-gold" };
@@ -44,6 +50,7 @@ function sentimentBadge(label: string, avg: number): string {
 
 export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   if (!clusters || !clusters.clusters.length) {
     return (
@@ -64,6 +71,23 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
         const colors = SENTIMENT_COLORS[cluster.sentiment_label] || SENTIMENT_COLORS.neutral;
         const conviction = convictionLevel(cluster.article_count);
         const isExpanded = expanded === cluster.theme;
+        const isHovered = hovered === cluster.theme;
+        const isDivergence = !!cluster.divergence;
+
+        // Divergence cards override border and glow with gold
+        const borderClass = isDivergence
+          ? "border-2 border-cyber-gold/30"
+          : `border ${colors.border}`;
+
+        const glowValue = isDivergence
+          ? isExpanded
+            ? DIVERGENCE_GLOW.expanded
+            : isHovered
+            ? DIVERGENCE_GLOW.hover
+            : DIVERGENCE_GLOW.rest
+          : isExpanded
+          ? `0 0 25px ${colors.glow}`
+          : `0 0 10px ${colors.glow}`;
 
         return (
           <motion.div
@@ -71,14 +95,33 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 }}
-            onMouseEnter={() => onClusterHover(cluster)}
-            onMouseLeave={() => onClusterHover(null)}
-            className={`rounded-xl border transition-all duration-300 cursor-pointer ${colors.border}`}
+            whileHover={isDivergence ? { y: -2 } : undefined}
+            onMouseEnter={() => {
+              setHovered(cluster.theme);
+              onClusterHover(cluster);
+            }}
+            onMouseLeave={() => {
+              setHovered(null);
+              onClusterHover(null);
+            }}
+            className={`rounded-xl transition-all duration-300 cursor-pointer ${borderClass} ${
+              isDivergence ? "animate-divergence-pulse" : ""
+            }`}
             style={{
               background: "linear-gradient(145deg, #1a1a2e, #0d0d22)",
-              boxShadow: isExpanded ? `0 0 25px ${colors.glow}` : `0 0 10px ${colors.glow}`,
+              boxShadow: glowValue,
             }}
           >
+            {/* Gold top beam for divergence cards */}
+            {isDivergence && (
+              <div
+                className="h-[2px] rounded-t-xl"
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(255,215,0,0.5), transparent)",
+                }}
+              />
+            )}
+
             {/* Card header */}
             <div
               className="p-4"
@@ -123,37 +166,43 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
                   </span>
                 )}
 
-                {/* Divergence warning */}
-                {cluster.divergence && (
+                {/* Divergence badge — only for NON-divergence cards (inline pill) */}
+                {/* Divergence cards get the promoted line below instead */}
+                {!isDivergence && cluster.divergence && (
                   <span className="text-xs font-bold text-cyber-gold px-2 py-0.5 rounded bg-cyber-gold/10 border border-cyber-gold/20">
                     DIVERGENCE
                   </span>
                 )}
               </div>
 
-              {/* Divergence detail */}
-              {cluster.divergence && (
-                <div className="mt-2 text-xs text-cyber-gold/80 italic">
-                  {cluster.divergence}
+              {/* Divergence: promoted dedicated line with diamond icon */}
+              {isDivergence && (
+                <div className="mt-3 text-sm text-cyber-gold font-semibold">
+                  ◆ DIVERGENCE — {cluster.divergence}
                 </div>
               )}
 
-              {/* LLM explanation */}
-              {cluster.explanation && (
-                <div className="mt-2.5 text-sm text-gray-300 leading-relaxed border-l-2 border-cyber-cyan/20 pl-3">
-                  {cluster.explanation}
-                </div>
-              )}
+              {/* Non-divergence cards: show explanation + description in collapsed */}
+              {!isDivergence && (
+                <>
+                  {/* LLM explanation */}
+                  {cluster.explanation && (
+                    <div className="mt-2.5 text-sm text-gray-300 leading-relaxed border-l-2 border-cyber-cyan/20 pl-3">
+                      {cluster.explanation}
+                    </div>
+                  )}
 
-              {/* Transparency: why this cluster matched */}
-              {cluster.description && (
-                <div className="mt-2 text-xs text-gray-500 leading-relaxed">
-                  {cluster.description}
-                </div>
+                  {/* Transparency: why this cluster matched */}
+                  {cluster.description && (
+                    <div className="mt-2 text-xs text-gray-500 leading-relaxed">
+                      {cluster.description}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Expanded article list */}
+            {/* Expanded section */}
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
@@ -163,10 +212,31 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="border-t border-white/5 px-4 pb-4 pt-3 space-y-2">
-                    {cluster.articles.map((article, j) => (
-                      <ClusterArticleRow key={j} article={article} />
-                    ))}
+                  <div className="border-t border-white/5 px-4 pb-4 pt-3 space-y-3">
+                    {/* Divergence cards: show explanation + description on expand */}
+                    {isDivergence && cluster.explanation && (
+                      <div>
+                        <div className="text-xs font-bold tracking-widest text-cyber-gold mb-1.5">
+                          WHY THIS MATTERS
+                        </div>
+                        <div className="text-sm text-gray-300 leading-relaxed border-l-2 border-cyber-gold/40 pl-3">
+                          {cluster.explanation}
+                        </div>
+                      </div>
+                    )}
+
+                    {isDivergence && cluster.description && (
+                      <div className="text-xs text-gray-500 leading-relaxed">
+                        {cluster.description}
+                      </div>
+                    )}
+
+                    {/* Article list */}
+                    <div className="space-y-2">
+                      {cluster.articles.map((article, j) => (
+                        <ClusterArticleRow key={j} article={article} />
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               )}

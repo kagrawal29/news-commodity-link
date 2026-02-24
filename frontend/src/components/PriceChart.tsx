@@ -66,12 +66,13 @@ export default function PriceChart({ data, commodityName, highlightCluster }: Pr
     refEnd = chartData[endIdx]?.date;
   }
 
-  const highlightColor =
-    highlightCluster?.sentiment_label === "positive"
-      ? "rgba(0,255,136,0.12)"
-      : highlightCluster?.sentiment_label === "negative"
-      ? "rgba(255,68,68,0.12)"
-      : "rgba(0,255,255,0.08)";
+  const highlightColor = highlightCluster?.divergence
+    ? "rgba(255,215,0,0.08)"
+    : highlightCluster?.sentiment_label === "positive"
+    ? "rgba(0,255,136,0.12)"
+    : highlightCluster?.sentiment_label === "negative"
+    ? "rgba(255,68,68,0.12)"
+    : "rgba(0,255,255,0.08)";
 
   return (
     <div className="rounded-xl p-4 border border-cyber-cyan/10 bg-bg-card/50 relative">

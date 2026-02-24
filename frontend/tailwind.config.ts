@@ -29,6 +29,7 @@ const config: Config = {
         "glow-pulse": "glowPulse 3s ease-in-out infinite",
         "border-glow": "borderGlow 4s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "divergence-pulse": "divergencePulse 800ms ease-out 1",
       },
       keyframes: {
         glowPulse: {
@@ -42,6 +43,11 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-8px)" },
+        },
+        divergencePulse: {
+          "0%": { borderColor: "rgba(255,215,0,0.15)", boxShadow: "0 0 10px rgba(255,215,0,0.05)" },
+          "40%": { borderColor: "rgba(255,215,0,0.6)", boxShadow: "0 0 30px rgba(255,215,0,0.2)" },
+          "100%": { borderColor: "rgba(255,215,0,0.3)", boxShadow: "0 0 20px rgba(255,215,0,0.15)" },
         },
       },
     },
