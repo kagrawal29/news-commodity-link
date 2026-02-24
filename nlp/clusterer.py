@@ -200,9 +200,9 @@ class ArticleClusterer:
         parts = []
         for kw, count in top:
             if count == 1:
-                parts.append(f"1 mentions {kw}")
+                parts.append(f"1 article mentions {kw}")
             else:
-                parts.append(f"{count} mention {kw}")
+                parts.append(f"{count} articles mention {kw}")
 
         return ", ".join(parts)
 
