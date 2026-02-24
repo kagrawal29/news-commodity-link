@@ -25,8 +25,16 @@ class ArticleClusterer:
     # Maximum clusters to return per request.
     MAX_CLUSTERS = 4
 
-    # Minimum keyword hits for an article to be assigned to a theme.
+    # Minimum theme-keyword hits for an article to be assigned to a theme.
     MIN_KEYWORD_HITS = 1
+
+    # Generic words that alone are not enough to assign a theme — need a
+    # second keyword to confirm the match.
+    _WEAK_KEYWORDS = frozenset({
+        "trade", "demand", "supply", "price", "market", "policy",
+        "export", "import", "production", "forecast", "report",
+        "china", "india", "recovery", "growth", "investment",
+    })
 
     # ------------------------------------------------------------------
     # Public API
@@ -78,7 +86,16 @@ class ArticleClusterer:
 
             for theme_name, keywords in theme_keywords.items():
                 matched = self._matched_keywords(text, keywords)
-                if len(matched) >= self.MIN_KEYWORD_HITS and len(matched) > best_hits:
+                if len(matched) < self.MIN_KEYWORD_HITS:
+                    continue
+                # If ALL matched keywords are weak/generic, require 2+
+                # to prevent false positives like "trade" alone.
+                has_strong = any(
+                    kw.lower() not in self._WEAK_KEYWORDS for kw in matched
+                )
+                if not has_strong and len(matched) < 2:
+                    continue
+                if len(matched) > best_hits:
                     best_hits = len(matched)
                     best_theme = theme_name
                     best_matched = matched

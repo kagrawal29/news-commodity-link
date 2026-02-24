@@ -171,33 +171,35 @@ class NewsFetcher:
     # RSS Feeds
     # ------------------------------------------------------------------
 
+    # Google News RSS feeds are pre-filtered by the search query embedded
+    # in the URL, so every entry is already relevant.
+    _GNEWS_RSS_PREFIX = "https://news.google.com/rss/"
+
     def _fetch_rss(
         self, feed_urls: list[str], keywords: list[str]
     ) -> list[dict]:
         """
-        Parse all *feed_urls* and return articles whose title or summary
-        contains at least one of the *keywords* (word-level matching).
+        Parse all *feed_urls* and return articles that are relevant to
+        the commodity.
+
+        Relevance rules:
+        - **Google News RSS** feeds (query-targeted): accept all entries.
+        - **Other feeds**: require at least one full keyword phrase match
+          in the title or summary.  Single generic words like "price" or
+          "trade" are NOT enough on their own.
         """
         articles: list[dict] = []
-        # Build patterns for full phrases AND individual words for lenient matching
-        keyword_patterns = [
+        # Build patterns only for full keyword phrases (e.g. "crude oil price",
+        # "OPEC", "WTI crude") — not individual words.
+        phrase_patterns = [
             re.compile(re.escape(kw), re.IGNORECASE) for kw in keywords
-        ]
-        keyword_words = set()
-        for kw in keywords:
-            for word in kw.lower().split():
-                if len(word) >= 3:  # skip tiny words like "of", "in"
-                    keyword_words.add(word)
-        word_patterns = [
-            re.compile(r"\b" + re.escape(w) + r"\b", re.IGNORECASE)
-            for w in keyword_words
         ]
 
         for url in feed_urls:
+            is_gnews_rss = url.startswith(self._GNEWS_RSS_PREFIX)
+
             try:
                 logger.debug("Parsing RSS feed: %s", url)
-                # Use requests (bundles certifi certs) to avoid SSL errors
-                # that feedparser's built-in urllib fetcher hits on macOS.
                 try:
                     resp = requests.get(url, timeout=15)
                     resp.raise_for_status()
@@ -217,16 +219,11 @@ class NewsFetcher:
                     summary = entry.get("summary", entry.get("description", ""))
                     text_blob = f"{title} {summary}"
 
-                    # Accept if any full keyword phrase OR individual word matches.
-                    relevant = (
-                        any(pat.search(text_blob) for pat in keyword_patterns)
-                        or any(pat.search(text_blob) for pat in word_patterns)
-                    )
-
-                    # Accept all entries from small/commodity-specific feeds,
-                    # only filter large general-purpose feeds.
-                    if not relevant and len(feed.entries) > 200:
-                        continue
+                    # Google News RSS: already targeted by search query.
+                    # Other feeds: require a full keyword phrase match.
+                    if not is_gnews_rss:
+                        if not any(pat.search(text_blob) for pat in phrase_patterns):
+                            continue
 
                     pub_date = self._extract_rss_date(entry)
                     source_name = feed.feed.get("title", url)
