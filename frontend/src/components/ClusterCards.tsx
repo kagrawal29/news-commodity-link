@@ -146,7 +146,7 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
               )}
 
               {/* Transparency: why this cluster matched */}
-              {cluster.description && !cluster.explanation && (
+              {cluster.description && (
                 <div className="mt-2 text-xs text-gray-500 leading-relaxed">
                   {cluster.description}
                 </div>

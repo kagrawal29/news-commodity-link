@@ -150,7 +150,7 @@ class NewsFetcher:
                 articles.append(
                     {
                         "title": item.get("title", ""),
-                        "description": item.get("description", ""),
+                        "description": self._strip_html(item.get("description", "")),
                         "source": item.get("source", {}).get("name", "Unknown"),
                         "url": item.get("url", ""),
                         "published_date": self._parse_date(
@@ -231,7 +231,7 @@ class NewsFetcher:
                     articles.append(
                         {
                             "title": title,
-                            "description": summary[:500] if summary else "",
+                            "description": self._strip_html(summary[:500]) if summary else "",
                             "source": source_name,
                             "url": entry.get("link", ""),
                             "published_date": pub_date,
@@ -282,6 +282,19 @@ class NewsFetcher:
         title = re.sub(r"[^\w\s]", "", title)
         title = re.sub(r"\s+", " ", title)
         return title
+
+    # ------------------------------------------------------------------
+    # Text cleanup
+    # ------------------------------------------------------------------
+
+    _HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+    @classmethod
+    def _strip_html(cls, text: str) -> str:
+        """Remove HTML tags and collapse whitespace."""
+        clean = cls._HTML_TAG_RE.sub(" ", text)
+        clean = re.sub(r"\s+", " ", clean).strip()
+        return clean
 
     # ------------------------------------------------------------------
     # Date helpers

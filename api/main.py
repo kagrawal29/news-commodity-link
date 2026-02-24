@@ -8,6 +8,7 @@ Run with: uvicorn api.main:app --reload --port 8000
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
@@ -177,8 +178,17 @@ def get_news_clusters(commodity: str):
     # Cluster articles by theme
     clusters = _clusterer.cluster(scored, commodity, price_data)
 
-    # Add LLM explanations (gracefully skipped if no API key)
-    clusters = _explainer.explain_clusters(clusters, info["name"])
+    # Add LLM explanations with caching (30-min TTL)
+    explainer_key = f"explainer:{commodity}:{datetime.utcnow().strftime('%Y-%m-%d-%H')}"
+    cached_explanations = _cache.get_cached(explainer_key, max_age=1800)
+    if cached_explanations and len(cached_explanations) == len(clusters):
+        for cluster, explanation in zip(clusters, cached_explanations):
+            cluster["explanation"] = explanation
+    else:
+        clusters = _explainer.explain_clusters(clusters, info["name"])
+        _cache.set_cached(
+            explainer_key, [c.get("explanation") for c in clusters]
+        )
 
     return {
         "commodity": commodity,
