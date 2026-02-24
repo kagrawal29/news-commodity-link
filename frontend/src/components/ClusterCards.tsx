@@ -130,6 +130,13 @@ export default function ClusterCards({ clusters, onClusterHover }: ClusterCardsP
                   {cluster.divergence}
                 </div>
               )}
+
+              {/* Transparency: why this cluster matched */}
+              {cluster.description && (
+                <div className="mt-2 text-xs text-gray-500 leading-relaxed">
+                  {cluster.description}
+                </div>
+              )}
             </div>
 
             {/* Expanded article list */}

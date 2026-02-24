@@ -99,6 +99,7 @@ export interface ClusterArticle {
 
 export interface NewsCluster {
   theme: string;
+  description: string;
   article_count: number;
   sentiment_avg: number;
   sentiment_label: "positive" | "negative" | "neutral";

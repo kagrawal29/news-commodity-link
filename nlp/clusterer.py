@@ -9,7 +9,9 @@ price movement over the same window.
 
 from __future__ import annotations
 
+import math
 import re
+from collections import Counter
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -63,20 +65,28 @@ class ArticleClusterer:
         theme_keywords: dict[str, list[str]] = {
             t["name"]: t["keywords"] for t in themes
         }
+        # Track keyword hits per theme for the description field.
+        theme_keyword_hits: dict[str, Counter] = {
+            t["name"]: Counter() for t in themes
+        }
 
         for article in scored_articles:
             text = self._article_text(article)
             best_theme: Optional[str] = None
             best_hits = 0
+            best_matched: list[str] = []
 
             for theme_name, keywords in theme_keywords.items():
-                hits = self._count_hits(text, keywords)
-                if hits >= self.MIN_KEYWORD_HITS and hits > best_hits:
-                    best_hits = hits
+                matched = self._matched_keywords(text, keywords)
+                if len(matched) >= self.MIN_KEYWORD_HITS and len(matched) > best_hits:
+                    best_hits = len(matched)
                     best_theme = theme_name
+                    best_matched = matched
 
             if best_theme is not None:
                 theme_buckets[best_theme].append(article)
+                for kw in best_matched:
+                    theme_keyword_hits[best_theme][kw] += 1
 
         # 2. Build cluster objects for non-empty buckets.
         clusters: list[dict] = []
@@ -115,8 +125,14 @@ class ArticleClusterer:
                     sentiment_avg, sentiment_label, price_delta
                 )
 
+            # Transparency description: explain which keywords matched
+            description = self._build_description(
+                theme_keyword_hits[theme_name], len(articles)
+            )
+
             clusters.append({
                 "theme": theme_name,
+                "description": description,
                 "article_count": len(articles),
                 "sentiment_avg": round(sentiment_avg, 4),
                 "sentiment_label": sentiment_label,
@@ -142,9 +158,10 @@ class ArticleClusterer:
                 ],
             })
 
-        # 3. Rank by article_count * abs(sentiment_avg), take top N.
+        # 3. Rank: weight volume more than intensity per Raj's conviction
+        #    model (theme convergence > single strong signal).
         clusters.sort(
-            key=lambda c: c["article_count"] * abs(c["sentiment_avg"]),
+            key=lambda c: math.pow(c["article_count"], 1.5) * abs(c["sentiment_avg"]),
             reverse=True,
         )
         return clusters[: self.MAX_CLUSTERS]
@@ -161,13 +178,33 @@ class ArticleClusterer:
         return f"{title} {description}".lower()
 
     @staticmethod
-    def _count_hits(text: str, keywords: list[str]) -> int:
-        """Count how many distinct keywords appear in text."""
-        return sum(
-            1
-            for kw in keywords
+    def _matched_keywords(text: str, keywords: list[str]) -> list[str]:
+        """Return the distinct keywords that appear in text."""
+        return [
+            kw for kw in keywords
             if re.search(re.escape(kw.lower()), text)
-        )
+        ]
+
+    @staticmethod
+    def _build_description(keyword_counts: Counter, article_count: int) -> str:
+        """
+        Build a human-readable description of why articles matched this theme.
+
+        E.g. "3 articles mention sanctions, 2 mention shipping disruptions"
+        """
+        if not keyword_counts:
+            return f"{article_count} article{'s' if article_count != 1 else ''} matched this theme"
+
+        # Take top 3 keywords by frequency
+        top = keyword_counts.most_common(3)
+        parts = []
+        for kw, count in top:
+            if count == 1:
+                parts.append(f"1 mentions {kw}")
+            else:
+                parts.append(f"{count} mention {kw}")
+
+        return ", ".join(parts)
 
     @staticmethod
     def _parse_date(article: dict) -> datetime:
@@ -257,10 +294,10 @@ class ArticleClusterer:
 
         # Bullish sentiment but price falling
         if sentiment_avg > 0.1 and price_delta < -0.5:
-            return "Bullish sentiment, price declining"
+            return "News: BULLISH / Price: DECLINING"
 
         # Bearish sentiment but price rising
         if sentiment_avg < -0.1 and price_delta > 0.5:
-            return "Bearish sentiment, price rising"
+            return "News: BEARISH / Price: RISING"
 
         return None
