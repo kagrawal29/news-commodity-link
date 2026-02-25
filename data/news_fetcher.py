@@ -236,7 +236,7 @@ class NewsFetcher:
                     articles.append(
                         {
                             "title": title,
-                            "description": self._strip_html(summary[:500]) if summary else "",
+                            "description": self._strip_html(summary)[:500] if summary else "",
                             "source": source_name,
                             "url": entry.get("link", ""),
                             "published_date": pub_date,
@@ -300,6 +300,8 @@ class NewsFetcher:
         from html import unescape
 
         clean = cls._HTML_TAG_RE.sub(" ", text)
+        # Also remove truncated/incomplete tags (e.g. "<a href=..." with no ">")
+        clean = re.sub(r"<[^>]*$", "", clean)
         clean = unescape(clean)  # &nbsp; → space, &amp; → &, etc.
         clean = re.sub(r"\s+", " ", clean).strip()
         return clean
